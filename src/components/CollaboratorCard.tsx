@@ -101,9 +101,10 @@ const CollaboratorCard: React.FC<CollaboratorCardProps> = ({ collaborator }) => 
       <CardContent>
         <div className="flex flex-col md:flex-row gap-6">
           <div className="flex-1">
-            <div className="space-y-4">
+            <div className="space-y-6">
+              {/* Hard Skills Matrix */}
               <div>
-                <h3 className="text-lg font-medium mb-2 flex items-center gap-2">
+                <h3 className="text-lg font-medium mb-3 flex items-center gap-2">
                   Hard Skills
                   <Button
                     variant="outline"
@@ -114,34 +115,48 @@ const CollaboratorCard: React.FC<CollaboratorCardProps> = ({ collaborator }) => 
                     {showRadar ? 'Esconder Gráfico' : 'Mostrar Gráfico'}
                   </Button>
                 </h3>
-                <div className="space-y-2">
-                  {hardSkills.map(skill => (
-                    <div key={skill.id} className="flex justify-between items-center py-1 border-b border-gray-100">
-                      <span>{skill.name}</span>
-                      <SkillRatingDot
-                        rating={skill.rating}
-                        isApt={skill.isApt}
-                        onRatingChange={(rating) => updateSkillRating(collaborator.id, skill.id, rating)}
-                        onAptToggle={() => toggleSkillAptitude(collaborator.id, skill.id)}
-                      />
-                    </div>
-                  ))}
+                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {hardSkills.map(skill => (
+                      <div key={skill.id} className="p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-all">
+                        <div className="flex flex-col gap-2">
+                          <div className="font-medium text-sm line-clamp-2 min-h-[40px]">{skill.name}</div>
+                          <div className="flex justify-between items-center">
+                            <SkillRatingDot
+                              rating={skill.rating}
+                              isApt={skill.isApt}
+                              onRatingChange={(rating) => updateSkillRating(collaborator.id, skill.id, rating)}
+                              onAptToggle={() => toggleSkillAptitude(collaborator.id, skill.id)}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
+              
+              {/* Soft Skills Matrix */}
               <div>
-                <h3 className="text-lg font-medium mb-2">Soft Skills</h3>
-                <div className="space-y-2">
-                  {softSkills.map(skill => (
-                    <div key={skill.id} className="flex justify-between items-center py-1 border-b border-gray-100">
-                      <span>{skill.name}</span>
-                      <SkillRatingDot
-                        rating={skill.rating}
-                        isApt={skill.isApt}
-                        onRatingChange={(rating) => updateSkillRating(collaborator.id, skill.id, rating)}
-                        onAptToggle={() => toggleSkillAptitude(collaborator.id, skill.id)}
-                      />
-                    </div>
-                  ))}
+                <h3 className="text-lg font-medium mb-3">Soft Skills</h3>
+                <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {softSkills.map(skill => (
+                      <div key={skill.id} className="p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-all">
+                        <div className="flex flex-col gap-2">
+                          <div className="font-medium text-sm line-clamp-2 min-h-[40px]">{skill.name}</div>
+                          <div className="flex justify-between items-center">
+                            <SkillRatingDot
+                              rating={skill.rating}
+                              isApt={skill.isApt}
+                              onRatingChange={(rating) => updateSkillRating(collaborator.id, skill.id, rating)}
+                              onAptToggle={() => toggleSkillAptitude(collaborator.id, skill.id)}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
