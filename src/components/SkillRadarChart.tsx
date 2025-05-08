@@ -32,13 +32,18 @@ const SkillRadarChart: React.FC<SkillRadarChartProps> = ({ collaborator }) => {
     return skills.find(s => s.id === skillId)?.category || 'hard';
   };
 
-  // Transform skills to radar chart data format
-  const chartData = skills.map(skill => ({
-    subject: getSkillName(skill.id),
-    value: getSkillRating(skill.id),
-    category: getSkillCategory(skill.id),
+  // Obter apenas os IDs de habilidades atribuídas ao colaborador
+  const assignedSkillIds = collaborator.skills
+    .filter(skill => skill.rating !== 'N/A' && typeof skill.rating === 'number')
+    .map(skill => skill.skillId);
+
+  // Transformar apenas as habilidades atribuídas para o formato do gráfico
+  const chartData = assignedSkillIds.map(skillId => ({
+    subject: getSkillName(skillId),
+    value: getSkillRating(skillId),
+    category: getSkillCategory(skillId),
     fullMark: 5,
-  })).filter(item => item.value > 0); // Only include skills with ratings
+  })).filter(item => item.value > 0); // Apenas incluir habilidades com avaliações
 
   const hardSkillsData = chartData.filter(item => item.category === 'hard');
   const softSkillsData = chartData.filter(item => item.category === 'soft');
