@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,17 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Skill matrix custom colors
+				skill: {
+					'na': '#8E9196',
+					'level1': '#ea384c',
+					'level2': '#FFDEE2',
+					'level3': '#FEF7CD',
+					'level4': '#F2FCE2',
+					'level5': '#83c76f',
+					'purple': '#9b87f5',
+					'dark': '#1A1F2C'
 				}
 			},
 			borderRadius: {
