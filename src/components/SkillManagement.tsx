@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { useMatrix } from '@/context/MatrixContext';
 import { toast } from 'sonner';
 import AddSkillForm from './AddSkillForm';
-import { ChartRadar } from 'lucide-react';
+import { BarChart } from 'lucide-react';
 
 const SkillManagement: React.FC = () => {
   const { skills, removeSkill, collaborators } = useMatrix();
@@ -31,7 +31,7 @@ const SkillManagement: React.FC = () => {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold flex items-center gap-2">
-          <ChartRadar className="h-6 w-6 text-skill-purple" />
+          <BarChart className="h-6 w-6 text-skill-purple" />
           Gerenciamento de Habilidades
         </h2>
         
