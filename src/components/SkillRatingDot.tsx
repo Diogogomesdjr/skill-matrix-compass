@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Rating } from '@/types';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { CircleCheck, X } from 'lucide-react';
+import { CircleCheck, CircleSlash } from 'lucide-react';
 
 interface SkillRatingDotProps {
   rating: Rating;
@@ -78,7 +78,7 @@ const SkillRatingDot: React.FC<SkillRatingDotProps> = ({
         {isApt ? (
           <CircleCheck size={18} className="text-skill-level5" />
         ) : (
-          <X size={18} className="text-gray-400" />
+          <CircleSlash size={18} className="text-gray-400" />
         )}
       </button>
     </div>

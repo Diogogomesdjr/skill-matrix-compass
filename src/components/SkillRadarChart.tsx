@@ -1,16 +1,7 @@
 
 import { Collaborator, Skill } from '@/types';
 import { useMatrix } from '@/context/MatrixContext';
-import { 
-  RadarChart, 
-  PolarGrid, 
-  PolarAngleAxis, 
-  Radar, 
-  ResponsiveContainer, 
-  Tooltip,
-  PolarRadiusAxis,
-  Legend
-} from 'recharts';
+import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, Tooltip } from 'recharts';
 
 interface SkillRadarChartProps {
   collaborator: Collaborator;
@@ -28,25 +19,12 @@ const SkillRadarChart: React.FC<SkillRadarChartProps> = ({ collaborator }) => {
     return skills.find(s => s.id === skillId)?.name || '';
   };
 
-  const getSkillCategory = (skillId: string) => {
-    return skills.find(s => s.id === skillId)?.category || 'hard';
-  };
-
-  // Obter apenas os IDs de habilidades atribuídas ao colaborador
-  const assignedSkillIds = collaborator.skills
-    .filter(skill => skill.rating !== 'N/A' && typeof skill.rating === 'number')
-    .map(skill => skill.skillId);
-
-  // Transformar apenas as habilidades atribuídas para o formato do gráfico
-  const chartData = assignedSkillIds.map(skillId => ({
-    subject: getSkillName(skillId),
-    value: getSkillRating(skillId),
-    category: getSkillCategory(skillId),
+  // Transform skills to radar chart data format
+  const chartData = skills.map(skill => ({
+    subject: getSkillName(skill.id),
+    value: getSkillRating(skill.id),
     fullMark: 5,
-  })).filter(item => item.value > 0); // Apenas incluir habilidades com avaliações
-
-  const hardSkillsData = chartData.filter(item => item.category === 'hard');
-  const softSkillsData = chartData.filter(item => item.category === 'soft');
+  })).filter(item => item.value > 0); // Only include skills with ratings
 
   if (chartData.length === 0) {
     return (
@@ -57,70 +35,22 @@ const SkillRadarChart: React.FC<SkillRadarChartProps> = ({ collaborator }) => {
   }
 
   return (
-    <div className="h-full w-full flex flex-col">
-      <h3 className="text-lg font-medium mb-4 text-center">Análise de Habilidades</h3>
-      
-      {hardSkillsData.length > 0 && (
-        <div className="mb-6">
-          <h4 className="text-md font-medium mb-3 text-center">Hard Skills</h4>
-          <div className="bg-white p-2 rounded-lg shadow-sm border border-gray-100">
-            <ResponsiveContainer width="100%" height={250}>
-              <RadarChart cx="50%" cy="50%" outerRadius="70%" data={hardSkillsData}>
-                <PolarGrid stroke="#e5e7eb" />
-                <PolarAngleAxis dataKey="subject" tick={{ fill: '#6b7280', fontSize: 11 }} />
-                <PolarRadiusAxis domain={[0, 5]} tick={{ fill: '#6b7280' }} />
-                <Radar
-                  name="Nível de Habilidade"
-                  dataKey="value"
-                  stroke="#9b87f5"
-                  fill="#9b87f5"
-                  fillOpacity={0.6}
-                />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'white', 
-                    borderRadius: '8px', 
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' 
-                  }}
-                  formatter={(value) => [`Nível: ${value}`, 'Habilidade']}
-                />
-                <Legend />
-              </RadarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      )}
-      
-      {softSkillsData.length > 0 && (
-        <div>
-          <h4 className="text-md font-medium mb-3 text-center">Soft Skills</h4>
-          <div className="bg-white p-2 rounded-lg shadow-sm border border-gray-100">
-            <ResponsiveContainer width="100%" height={250}>
-              <RadarChart cx="50%" cy="50%" outerRadius="70%" data={softSkillsData}>
-                <PolarGrid stroke="#e5e7eb" />
-                <PolarAngleAxis dataKey="subject" tick={{ fill: '#6b7280', fontSize: 11 }} />
-                <PolarRadiusAxis domain={[0, 5]} tick={{ fill: '#6b7280' }} />
-                <Radar
-                  name="Nível de Habilidade"
-                  dataKey="value"
-                  stroke="#7E69AB"
-                  fill="#7E69AB"
-                  fillOpacity={0.6}
-                />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'white', 
-                    borderRadius: '8px', 
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' 
-                  }}
-                  formatter={(value) => [`Nível: ${value}`, 'Habilidade']}
-                />
-                <Legend />
-              </RadarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      )}
+    <div className="h-full w-full">
+      <h3 className="text-lg font-medium mb-2 text-center">Análise de Habilidades</h3>
+      <ResponsiveContainer width="100%" height={300}>
+        <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chartData}>
+          <PolarGrid />
+          <PolarAngleAxis dataKey="subject" />
+          <Radar
+            name="Habilidades"
+            dataKey="value"
+            stroke="#9b87f5"
+            fill="#9b87f5"
+            fillOpacity={0.6}
+          />
+          <Tooltip />
+        </RadarChart>
+      </ResponsiveContainer>
     </div>
   );
 };
