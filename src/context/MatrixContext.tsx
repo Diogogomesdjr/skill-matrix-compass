@@ -12,6 +12,7 @@ interface MatrixContextType {
   addTeam: (team: Omit<Team, 'id'>) => void;
   removeTeam: (id: string) => void;
   addSkill: (skill: Omit<Skill, 'id'>) => void;
+  updateSkill: (id: string, data: Partial<Skill>) => void;
   removeSkill: (id: string) => void;
   updateSkillRating: (collaboratorId: string, skillId: string, rating: Rating) => void;
   toggleSkillAptitude: (collaboratorId: string, skillId: string) => void;
@@ -98,6 +99,14 @@ export const MatrixProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setSkills([...skills, newSkill]);
   };
 
+  const updateSkill = (id: string, data: Partial<Skill>) => {
+    setSkills(
+      skills.map(skill => 
+        skill.id === id ? { ...skill, ...data } : skill
+      )
+    );
+  };
+
   const removeSkill = (id: string) => {
     setSkills(skills.filter(skill => skill.id !== id));
   };
@@ -159,6 +168,7 @@ export const MatrixProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         addTeam,
         removeTeam,
         addSkill,
+        updateSkill,
         removeSkill,
         updateSkillRating,
         toggleSkillAptitude,

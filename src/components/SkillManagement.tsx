@@ -7,11 +7,14 @@ import { Badge } from '@/components/ui/badge';
 import { useMatrix } from '@/context/MatrixContext';
 import { toast } from 'sonner';
 import AddSkillForm from './AddSkillForm';
-import { BarChart } from 'lucide-react';
+import { BarChart, Edit } from 'lucide-react';
+import EditSkillDialog from './EditSkillDialog';
 
 const SkillManagement: React.FC = () => {
   const { skills, removeSkill, collaborators } = useMatrix();
   const [openDialog, setOpenDialog] = useState(false);
+  const [editingSkill, setEditingSkill] = useState<{id: string, name: string, category: string} | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const handleRemoveSkill = (id: string, name: string) => {
     const skillIsInUse = collaborators.some(c => 
@@ -34,6 +37,11 @@ const SkillManagement: React.FC = () => {
       case 'soft': return { label: 'Soft Skill', variant: 'secondary' as const };
       default: return { label: category, variant: 'outline' as const };
     }
+  };
+
+  const handleEditSkill = (skill: {id: string, name: string, category: string}) => {
+    setEditingSkill(skill);
+    setIsEditDialogOpen(true);
   };
 
   return (
@@ -63,7 +71,7 @@ const SkillManagement: React.FC = () => {
             <TableRow>
               <TableHead>Nome</TableHead>
               <TableHead>Categoria</TableHead>
-              <TableHead className="w-[100px]">Ações</TableHead>
+              <TableHead className="w-[160px]">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -78,13 +86,23 @@ const SkillManagement: React.FC = () => {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleRemoveSkill(skill.id, skill.name)}
-                    >
-                      Remover
-                    </Button>
+                    <div className="flex space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditSkill({id: skill.id, name: skill.name, category: skill.category})}
+                      >
+                        <Edit className="h-4 w-4 mr-1" />
+                        Editar
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleRemoveSkill(skill.id, skill.name)}
+                      >
+                        Remover
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               );
@@ -97,6 +115,12 @@ const SkillManagement: React.FC = () => {
           <p className="text-muted-foreground">Adicione habilidades para avaliar seus colaboradores.</p>
         </div>
       )}
+
+      <EditSkillDialog 
+        open={isEditDialogOpen} 
+        onOpenChange={setIsEditDialogOpen} 
+        skill={editingSkill} 
+      />
     </div>
   );
 };

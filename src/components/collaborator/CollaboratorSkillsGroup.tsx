@@ -10,6 +10,7 @@ interface CollaboratorSkillsGroupProps {
   toggleSkillAptitude: (collaboratorId: string, skillId: string) => void;
   collaboratorId: string;
   showAptitude: boolean;
+  categoryLabel?: string;
 }
 
 const CollaboratorSkillsGroup: React.FC<CollaboratorSkillsGroupProps> = ({
@@ -19,13 +20,17 @@ const CollaboratorSkillsGroup: React.FC<CollaboratorSkillsGroupProps> = ({
   updateSkillRating,
   toggleSkillAptitude,
   collaboratorId,
-  showAptitude
+  showAptitude,
+  categoryLabel
 }) => {
   if (skills.length === 0) return null;
 
   return (
     <div>
-      <h3 className="text-lg font-medium mb-3">{title}</h3>
+      <h3 className="text-lg font-medium mb-3">
+        {title}
+        {categoryLabel && <span className="ml-2 text-sm text-gray-500">({categoryLabel})</span>}
+      </h3>
       <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
         <div className="grid grid-cols-1 gap-4">
           {skills.map(skill => (

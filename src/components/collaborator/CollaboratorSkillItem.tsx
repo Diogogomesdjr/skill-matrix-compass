@@ -2,6 +2,7 @@
 import { Skill, Rating } from '@/types';
 import { Slider } from '@/components/ui/slider';
 import SkillRatingDot from '../SkillRatingDot';
+import { Badge } from "@/components/ui/badge";
 
 interface CollaboratorSkillItemProps {
   skill: Skill & { rating: Rating; isApt: boolean };
@@ -24,10 +25,27 @@ const CollaboratorSkillItem: React.FC<CollaboratorSkillItemProps> = ({
     return rating === 'N/A' ? [0] : [rating];
   };
 
+  // Get category badge variant
+  const getCategoryBadge = (category: string) => {
+    switch (category) {
+      case 'knowledge':
+        return <Badge variant="outline">Conhecimento</Badge>;
+      case 'hard':
+        return <Badge variant="default">Hard Skill</Badge>;
+      case 'soft':
+        return <Badge variant="secondary">Soft Skill</Badge>;
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-all">
       <div className="flex flex-col gap-2">
-        <div className="font-medium">{skill.name}</div>
+        <div className="flex justify-between items-center">
+          <div className="font-medium">{skill.name}</div>
+          {getCategoryBadge(skill.category)}
+        </div>
         <div className="flex items-center gap-4">
           <div className="flex-1">
             <Slider

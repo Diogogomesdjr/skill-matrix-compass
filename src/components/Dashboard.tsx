@@ -11,6 +11,7 @@ import TeamManagement from './TeamManagement';
 import SkillManagement from './SkillManagement';
 import LegendSection from './LegendSection';
 import { UserPlus } from 'lucide-react';
+import RecognitionSection from './RecognitionSection';
 
 const Dashboard: React.FC = () => {
   const { collaborators, teams } = useMatrix();
@@ -29,8 +30,9 @@ const Dashboard: React.FC = () => {
       <LegendSection />
       
       <Tabs defaultValue="collaborators" className="space-y-6">
-        <TabsList className="grid grid-cols-3 w-full max-w-md">
+        <TabsList className="grid grid-cols-4 w-full max-w-md">
           <TabsTrigger value="collaborators">Colaboradores</TabsTrigger>
+          <TabsTrigger value="recognition">Reconhecimento</TabsTrigger>
           <TabsTrigger value="teams">Equipes</TabsTrigger>
           <TabsTrigger value="skills">Habilidades</TabsTrigger>
         </TabsList>
@@ -90,6 +92,10 @@ const Dashboard: React.FC = () => {
               </Button>
             </div>
           )}
+        </TabsContent>
+        
+        <TabsContent value="recognition">
+          <RecognitionSection />
         </TabsContent>
         
         <TabsContent value="teams">

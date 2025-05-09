@@ -8,6 +8,7 @@ import { useMatrix } from '@/context/MatrixContext';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { CollaboratorHeader } from './collaborator/CollaboratorHeader';
 import CollaboratorSkillsSection from './collaborator/CollaboratorSkillsSection';
+import { badgeVariants } from './ui/badge';
 
 interface CollaboratorCardProps {
   collaborator: Collaborator;
@@ -32,6 +33,45 @@ const CollaboratorCard: React.FC<CollaboratorCardProps> = ({ collaborator }) => 
   // Group skills by category
   const knowledgeSkills = assignedSkills.filter(skill => skill.category === 'knowledge');
   const otherSkills = assignedSkills.filter(skill => skill.category !== 'knowledge');
+
+  // For the collapsed view, we create a simplified summary
+  const renderCollapsedSkillMatrix = () => {
+    if (assignedSkills.length === 0) {
+      return <p className="text-sm text-gray-500">Nenhuma habilidade atribuída</p>;
+    }
+
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-2">
+        {assignedSkills.map(skill => (
+          <div key={skill.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
+            <div className="flex items-center">
+              <span className={
+                skill.category === 'knowledge' ? badgeVariants({ variant: "outline" }) :
+                skill.category === 'hard' ? badgeVariants({ variant: "default" }) :
+                badgeVariants({ variant: "secondary" })
+              }>
+                {skill.category === 'knowledge' ? 'K' : skill.category === 'hard' ? 'H' : 'S'}
+              </span>
+              <span className="ml-2 text-sm">{skill.name}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className={`h-6 w-6 rounded-full flex items-center justify-center text-xs ${
+                skill.rating === 'N/A' ? 'bg-gray-200' :
+                skill.rating === 1 ? 'bg-red-400 text-white' : 
+                skill.rating === 2 ? 'bg-orange-400 text-white' : 
+                skill.rating === 3 ? 'bg-yellow-400' : 
+                skill.rating === 4 ? 'bg-green-400' : 
+                'bg-green-600 text-white'
+              }`}>
+                {skill.rating === 'N/A' ? '-' : skill.rating}
+              </span>
+              {skill.isApt && <span className="w-2 h-2 rounded-full bg-green-500"></span>}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <Card className="w-full">
@@ -70,18 +110,24 @@ const CollaboratorCard: React.FC<CollaboratorCardProps> = ({ collaborator }) => 
             </CollapsibleTrigger>
           </div>
           
-          <CollapsibleContent>
-            <CardContent>
-              <CollaboratorSkillsSection 
-                skills={assignedSkills}
-                knowledgeSkills={knowledgeSkills}
-                otherSkills={otherSkills}
-                collaborator={collaborator}
-                updateSkillRating={updateSkillRating}
-                toggleSkillAptitude={toggleSkillAptitude}
-              />
-            </CardContent>
-          </CollapsibleContent>
+          {isCollapsed ? (
+            <div className="py-2">
+              {renderCollapsedSkillMatrix()}
+            </div>
+          ) : (
+            <CollapsibleContent>
+              <CardContent>
+                <CollaboratorSkillsSection 
+                  skills={assignedSkills}
+                  knowledgeSkills={knowledgeSkills}
+                  otherSkills={otherSkills}
+                  collaborator={collaborator}
+                  updateSkillRating={updateSkillRating}
+                  toggleSkillAptitude={toggleSkillAptitude}
+                />
+              </CardContent>
+            </CollapsibleContent>
+          )}
         </Collapsible>
       </CardHeader>
     </Card>
