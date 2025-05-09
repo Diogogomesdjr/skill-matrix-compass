@@ -4,7 +4,7 @@ export type Rating = 'N/A' | 1 | 2 | 3 | 4 | 5;
 export interface Skill {
   id: string;
   name: string;
-  category: 'hard' | 'soft';
+  category: 'hard' | 'soft' | 'knowledge';
 }
 
 export interface SkillRating {

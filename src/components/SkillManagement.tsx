@@ -27,6 +27,15 @@ const SkillManagement: React.FC = () => {
     toast.success(`Habilidade "${name}" foi removida com sucesso.`);
   };
 
+  const getCategoryLabel = (category: string) => {
+    switch (category) {
+      case 'knowledge': return { label: 'Conhecimento', variant: 'outline' as const };
+      case 'hard': return { label: 'Hard Skill', variant: 'default' as const };
+      case 'soft': return { label: 'Soft Skill', variant: 'secondary' as const };
+      default: return { label: category, variant: 'outline' as const };
+    }
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -58,25 +67,28 @@ const SkillManagement: React.FC = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {skills.map((skill) => (
-              <TableRow key={skill.id}>
-                <TableCell className="font-medium">{skill.name}</TableCell>
-                <TableCell>
-                  <Badge variant={skill.category === 'hard' ? 'default' : 'secondary'}>
-                    {skill.category === 'hard' ? 'Hard Skill' : 'Soft Skill'}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleRemoveSkill(skill.id, skill.name)}
-                  >
-                    Remover
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
+            {skills.map((skill) => {
+              const categoryInfo = getCategoryLabel(skill.category);
+              return (
+                <TableRow key={skill.id}>
+                  <TableCell className="font-medium">{skill.name}</TableCell>
+                  <TableCell>
+                    <Badge variant={categoryInfo.variant}>
+                      {categoryInfo.label}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleRemoveSkill(skill.id, skill.name)}
+                    >
+                      Remover
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       ) : (

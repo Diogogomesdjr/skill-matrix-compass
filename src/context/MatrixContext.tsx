@@ -26,6 +26,7 @@ const defaultSkills: Skill[] = [
   { id: 'skill3', name: 'Trabalho em Equipe', category: 'soft' },
   { id: 'skill4', name: 'Excel', category: 'hard' },
   { id: 'skill5', name: 'PowerPoint', category: 'hard' },
+  { id: 'skill6', name: 'Inglês', category: 'knowledge' },
 ];
 
 const defaultTeams: Team[] = [

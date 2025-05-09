@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Flag, UserMinus, Star } from 'lucide-react';
+import { Flag, UserMinus, Star, ChevronDown, ChevronUp } from 'lucide-react';
 import { Collaborator, Skill, Team } from '@/types';
 import SkillRatingDot from './SkillRatingDot';
 import { useMatrix } from '@/context/MatrixContext';
@@ -17,6 +17,7 @@ interface CollaboratorCardProps {
 const CollaboratorCard: React.FC<CollaboratorCardProps> = ({ collaborator }) => {
   const { skills, teams, updateSkillRating, toggleSkillAptitude, toggleFocal, removeCollaborator } = useMatrix();
   const [showRadar, setShowRadar] = useState(false);
+  const [showSkills, setShowSkills] = useState(true);
 
   const getTeamName = (teamId: string) => {
     const team = teams.find(t => t.id === teamId);
@@ -32,8 +33,8 @@ const CollaboratorCard: React.FC<CollaboratorCardProps> = ({ collaborator }) => 
       .toUpperCase();
   };
 
-  // Obter apenas as habilidades que foram atribuídas ao colaborador
-  const getAssignedSkills = (category: 'hard' | 'soft') => {
+  // Get only skills that were assigned to the collaborator
+  const getAssignedSkills = (category: 'hard' | 'soft' | 'knowledge') => {
     const assignedSkillIds = collaborator.skills.map(s => s.skillId);
     
     return skills
@@ -48,6 +49,7 @@ const CollaboratorCard: React.FC<CollaboratorCardProps> = ({ collaborator }) => 
       }));
   };
 
+  const knowledgeSkills = getAssignedSkills('knowledge');
   const hardSkills = getAssignedSkills('hard');
   const softSkills = getAssignedSkills('soft');
 
@@ -60,10 +62,12 @@ const CollaboratorCard: React.FC<CollaboratorCardProps> = ({ collaborator }) => 
     toggleFocal(collaborator.id);
     toast.success(
       collaborator.isFocal
-        ? `${collaborator.name} não é mais o responsável.`
-        : `${collaborator.name} definido como responsável.`
+        ? `${collaborator.name} não é mais o Ponto Focal.`
+        : `${collaborator.name} definido como Ponto Focal.`
     );
   };
+
+  const hasAnySkills = knowledgeSkills.length > 0 || hardSkills.length > 0 || softSkills.length > 0;
 
   return (
     <Card className="w-full">
@@ -92,7 +96,7 @@ const CollaboratorCard: React.FC<CollaboratorCardProps> = ({ collaborator }) => 
               onClick={handleToggleFocal}
             >
               <Flag size={16} />
-              {collaborator.isFocal ? 'Remover responsável' : 'Tornar responsável'}
+              {collaborator.isFocal ? 'Remover Ponto Focal' : 'Definir como Ponto Focal'}
             </Button>
             <Button
               size="sm"
@@ -103,91 +107,139 @@ const CollaboratorCard: React.FC<CollaboratorCardProps> = ({ collaborator }) => 
             </Button>
           </div>
         </div>
-      </CardHeader>
-      <CardContent>
-        <div className="flex flex-col md:flex-row gap-6">
-          <div className="flex-1">
-            <div className="space-y-6">
-              {/* Hard Skills Matrix */}
-              <div>
-                <h3 className="text-lg font-medium mb-3 flex items-center gap-2">
-                  Hard Skills
-                  {hardSkills.length > 0 && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="ml-2"
-                      onClick={() => setShowRadar(!showRadar)}
-                    >
-                      {showRadar ? 'Esconder Gráfico' : 'Mostrar Gráfico'}
-                    </Button>
-                  )}
-                </h3>
-                {hardSkills.length > 0 ? (
-                  <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                      {hardSkills.map(skill => (
-                        <div key={skill.id} className="p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-all">
-                          <div className="flex flex-col gap-2">
-                            <div className="font-medium text-sm line-clamp-2 min-h-[40px]">{skill.name}</div>
-                            <div className="flex justify-between items-center">
-                              <SkillRatingDot
-                                rating={skill.rating}
-                                isApt={skill.isApt}
-                                onRatingChange={(rating) => updateSkillRating(collaborator.id, skill.id, rating)}
-                                onAptToggle={() => toggleSkillAptitude(collaborator.id, skill.id)}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="bg-white rounded-lg p-6 text-center text-gray-500 border border-dashed border-gray-200">
-                    Nenhuma hard skill atribuída a este colaborador
-                  </div>
-                )}
-              </div>
-              
-              {/* Soft Skills Matrix */}
-              <div>
-                <h3 className="text-lg font-medium mb-3">Soft Skills</h3>
-                {softSkills.length > 0 ? (
-                  <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                      {softSkills.map(skill => (
-                        <div key={skill.id} className="p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-all">
-                          <div className="flex flex-col gap-2">
-                            <div className="font-medium text-sm line-clamp-2 min-h-[40px]">{skill.name}</div>
-                            <div className="flex justify-between items-center">
-                              <SkillRatingDot
-                                rating={skill.rating}
-                                isApt={skill.isApt}
-                                onRatingChange={(rating) => updateSkillRating(collaborator.id, skill.id, rating)}
-                                onAptToggle={() => toggleSkillAptitude(collaborator.id, skill.id)}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="bg-white rounded-lg p-6 text-center text-gray-500 border border-dashed border-gray-200">
-                    Nenhuma soft skill atribuída a este colaborador
-                  </div>
-                )}
-              </div>
-            </div>
+        {hasAnySkills && (
+          <div className="flex justify-between items-center mt-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowSkills(!showSkills)}
+              className="flex items-center gap-1"
+            >
+              {showSkills ? (
+                <>
+                  <ChevronUp size={16} />
+                  Recolher Habilidades
+                </>
+              ) : (
+                <>
+                  <ChevronDown size={16} />
+                  Expandir Habilidades
+                </>
+              )}
+            </Button>
+            {hardSkills.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowRadar(!showRadar)}
+              >
+                {showRadar ? 'Esconder Gráfico' : 'Mostrar Gráfico'}
+              </Button>
+            )}
           </div>
-          {showRadar && hardSkills.length > 0 && (
-            <div className="flex-1 min-h-[300px]">
-              <SkillRadarChart collaborator={collaborator} />
+        )}
+      </CardHeader>
+      {showSkills && (
+        <CardContent>
+          <div className="flex flex-col md:flex-row gap-6">
+            <div className="flex-1">
+              <div className="space-y-6">
+                {/* Knowledge Skills Matrix */}
+                {knowledgeSkills.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-medium mb-3">Conhecimentos</h3>
+                    <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                        {knowledgeSkills.map(skill => (
+                          <div key={skill.id} className="p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-all">
+                            <div className="flex flex-col gap-2">
+                              <div className="font-medium text-sm line-clamp-2 min-h-[40px]">{skill.name}</div>
+                              <div className="flex justify-between items-center">
+                                <SkillRatingDot
+                                  rating={skill.rating}
+                                  isApt={skill.isApt}
+                                  onRatingChange={(rating) => updateSkillRating(collaborator.id, skill.id, rating)}
+                                  onAptToggle={() => toggleSkillAptitude(collaborator.id, skill.id)}
+                                  showAptitude={true}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Hard Skills Matrix */}
+                {hardSkills.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-medium mb-3">Hard Skills</h3>
+                    <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                        {hardSkills.map(skill => (
+                          <div key={skill.id} className="p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-all">
+                            <div className="flex flex-col gap-2">
+                              <div className="font-medium text-sm line-clamp-2 min-h-[40px]">{skill.name}</div>
+                              <div className="flex justify-between items-center">
+                                <SkillRatingDot
+                                  rating={skill.rating}
+                                  isApt={skill.isApt}
+                                  onRatingChange={(rating) => updateSkillRating(collaborator.id, skill.id, rating)}
+                                  onAptToggle={() => toggleSkillAptitude(collaborator.id, skill.id)}
+                                  showAptitude={false}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Soft Skills Matrix */}
+                {softSkills.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-medium mb-3">Soft Skills</h3>
+                    <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                        {softSkills.map(skill => (
+                          <div key={skill.id} className="p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-all">
+                            <div className="flex flex-col gap-2">
+                              <div className="font-medium text-sm line-clamp-2 min-h-[40px]">{skill.name}</div>
+                              <div className="flex justify-between items-center">
+                                <SkillRatingDot
+                                  rating={skill.rating}
+                                  isApt={skill.isApt}
+                                  onRatingChange={(rating) => updateSkillRating(collaborator.id, skill.id, rating)}
+                                  onAptToggle={() => toggleSkillAptitude(collaborator.id, skill.id)}
+                                  showAptitude={false}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {!hasAnySkills && (
+                  <div className="bg-white rounded-lg p-6 text-center text-gray-500 border border-dashed border-gray-200">
+                    Nenhuma habilidade atribuída a este colaborador
+                  </div>
+                )}
+              </div>
             </div>
-          )}
-        </div>
-      </CardContent>
+            {showRadar && hardSkills.length > 0 && (
+              <div className="flex-1 min-h-[300px]">
+                <SkillRadarChart collaborator={collaborator} />
+              </div>
+            )}
+          </div>
+        </CardContent>
+      )}
     </Card>
   );
 };
