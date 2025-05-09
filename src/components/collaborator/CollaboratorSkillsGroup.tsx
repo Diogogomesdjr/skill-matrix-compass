@@ -25,11 +25,18 @@ const CollaboratorSkillsGroup: React.FC<CollaboratorSkillsGroupProps> = ({
 }) => {
   if (skills.length === 0) return null;
 
+  const getCategoryLabel = () => {
+    if (categoryLabel) return categoryLabel;
+    if (title === "Hard Skills") return "Hard";
+    if (title === "Soft Skills") return "Soft";
+    return "Knowledge";
+  };
+
   return (
     <div>
       <h3 className="text-lg font-medium mb-3">
         {title}
-        {categoryLabel && <span className="ml-2 text-sm text-gray-500">({categoryLabel})</span>}
+        <span className="ml-2 text-sm text-gray-500">({getCategoryLabel()})</span>
       </h3>
       <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
         <div className="grid grid-cols-1 gap-4">

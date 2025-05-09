@@ -5,6 +5,15 @@ import { Skill, Rating, Collaborator } from '@/types';
 import SkillRadarChart from '../SkillRadarChart';
 import CollaboratorSkillsGroup from './CollaboratorSkillsGroup';
 import { Badge } from "@/components/ui/badge";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger 
+} from '@/components/ui/dialog';
+import { useMatrix } from '@/context/MatrixContext';
+import { Plus } from 'lucide-react';
 
 interface CollaboratorSkillsSectionProps {
   skills: Array<Skill & { rating: Rating; isApt: boolean }>;
@@ -24,6 +33,8 @@ const CollaboratorSkillsSection: React.FC<CollaboratorSkillsSectionProps> = ({
   toggleSkillAptitude
 }) => {
   const [showRadar, setShowRadar] = useState(false);
+  const [openSkillDialog, setOpenSkillDialog] = useState(false);
+  const { skills: allSkills } = useMatrix();
 
   // Calculate aptitude status
   const aptSkills = collaborator.skills.filter(skill => skill.isApt).length;
@@ -51,6 +62,15 @@ const CollaboratorSkillsSection: React.FC<CollaboratorSkillsSectionProps> = ({
     updateSkillRating(collaborator.id, skillId, newRating);
   };
 
+  // Get skills that are not already assigned to collaborator
+  const unassignedSkills = allSkills.filter(
+    skill => !collaborator.skills.some(cs => cs.skillId === skill.id)
+  );
+
+  const addSkillToCollaborator = (skillId: string) => {
+    updateSkillRating(collaborator.id, skillId, 'N/A');
+  };
+
   return (
     <div className="flex flex-col md:flex-row gap-6">
       <div className="flex-1">
@@ -60,6 +80,48 @@ const CollaboratorSkillsSection: React.FC<CollaboratorSkillsSectionProps> = ({
               {aptitudeStatus.label} ({Math.round(aptPercentage)}%)
             </div>
           </div>
+          
+          <Dialog open={openSkillDialog} onOpenChange={setOpenSkillDialog}>
+            <DialogTrigger asChild>
+              <Button className="flex items-center gap-2" variant="outline">
+                <Plus size={18} />
+                Adicionar Habilidades
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Adicionar Habilidades para {collaborator.name}</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-4 max-h-96 overflow-y-auto">
+                {unassignedSkills.length > 0 ? (
+                  unassignedSkills.map(skill => (
+                    <div key={skill.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
+                      <div className="flex items-center gap-2">
+                        <Badge variant={skill.category === 'knowledge' ? 'outline' : skill.category === 'hard' ? 'default' : 'secondary'}>
+                          {skill.category === 'knowledge' ? 'Conhecimento' : 
+                           skill.category === 'hard' ? 'Hard Skill' : 'Soft Skill'}
+                        </Badge>
+                        <span>{skill.name}</span>
+                      </div>
+                      <Button 
+                        onClick={() => {
+                          addSkillToCollaborator(skill.id);
+                          setOpenSkillDialog(false);
+                        }}
+                        size="sm"
+                      >
+                        Adicionar
+                      </Button>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center p-4 text-muted-foreground">
+                    Todas as habilidades já foram atribuídas a este colaborador.
+                  </div>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
         <div className="space-y-6">
           <CollaboratorSkillsGroup 

@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp } from 'lucide-react';
@@ -12,11 +12,32 @@ import { badgeVariants } from './ui/badge';
 
 interface CollaboratorCardProps {
   collaborator: Collaborator;
+  globalCollapsed?: boolean;
 }
 
-const CollaboratorCard: React.FC<CollaboratorCardProps> = ({ collaborator }) => {
+const CollaboratorCard: React.FC<CollaboratorCardProps> = ({ collaborator, globalCollapsed }) => {
   const { skills, teams, updateSkillRating, toggleSkillAptitude, toggleFocal, removeCollaborator } = useMatrix();
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // Listen for global collapse/expand events
+  useEffect(() => {
+    const handleToggleAllCards = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      setIsCollapsed(customEvent.detail.collapsed);
+    };
+
+    document.addEventListener('toggleAllCards', handleToggleAllCards);
+    return () => {
+      document.removeEventListener('toggleAllCards', handleToggleAllCards);
+    };
+  }, []);
+
+  // Update local collapsed state when global prop changes
+  useEffect(() => {
+    if (globalCollapsed !== undefined) {
+      setIsCollapsed(globalCollapsed);
+    }
+  }, [globalCollapsed]);
 
   // Get only skills that were assigned to the collaborator
   const assignedSkills = skills
