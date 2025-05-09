@@ -3,12 +3,14 @@ import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Flag, UserMinus, Star, ChevronDown, ChevronUp } from 'lucide-react';
-import { Collaborator, Skill, Team } from '@/types';
+import { Flag, UserMinus, ChevronDown, ChevronUp } from 'lucide-react';
+import { Collaborator } from '@/types';
 import SkillRatingDot from './SkillRatingDot';
 import { useMatrix } from '@/context/MatrixContext';
 import SkillRadarChart from './SkillRadarChart';
 import { toast } from 'sonner';
+import { Slider } from '@/components/ui/slider';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface CollaboratorCardProps {
   collaborator: Collaborator;
@@ -17,7 +19,7 @@ interface CollaboratorCardProps {
 const CollaboratorCard: React.FC<CollaboratorCardProps> = ({ collaborator }) => {
   const { skills, teams, updateSkillRating, toggleSkillAptitude, toggleFocal, removeCollaborator } = useMatrix();
   const [showRadar, setShowRadar] = useState(false);
-  const [showSkills, setShowSkills] = useState(true);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const getTeamName = (teamId: string) => {
     const team = teams.find(t => t.id === teamId);
@@ -34,24 +36,19 @@ const CollaboratorCard: React.FC<CollaboratorCardProps> = ({ collaborator }) => 
   };
 
   // Get only skills that were assigned to the collaborator
-  const getAssignedSkills = (category: 'hard' | 'soft' | 'knowledge') => {
-    const assignedSkillIds = collaborator.skills.map(s => s.skillId);
-    
-    return skills
-      .filter(skill => 
-        skill.category === category && 
-        assignedSkillIds.includes(skill.id)
-      )
-      .map(skill => ({
+  const assignedSkills = skills
+    .filter(skill => collaborator.skills.some(s => s.skillId === skill.id))
+    .map(skill => {
+      const skillRating = collaborator.skills.find(s => s.skillId === skill.id);
+      return {
         ...skill,
-        rating: collaborator.skills.find(s => s.skillId === skill.id)?.rating || 'N/A',
-        isApt: collaborator.skills.find(s => s.skillId === skill.id)?.isApt || false,
-      }));
-  };
+        rating: skillRating?.rating || 'N/A',
+        isApt: skillRating?.isApt || false,
+      };
+    });
 
-  const knowledgeSkills = getAssignedSkills('knowledge');
-  const hardSkills = getAssignedSkills('hard');
-  const softSkills = getAssignedSkills('soft');
+  // Group skills by category
+  const knowledgeSkills = assignedSkills.filter(skill => skill.category === 'knowledge');
 
   const handleRemove = () => {
     removeCollaborator(collaborator.id);
@@ -67,7 +64,14 @@ const CollaboratorCard: React.FC<CollaboratorCardProps> = ({ collaborator }) => 
     );
   };
 
-  const hasAnySkills = knowledgeSkills.length > 0 || hardSkills.length > 0 || softSkills.length > 0;
+  const handleRatingChange = (skillId: string, rating: number[]) => {
+    const newRating = rating[0] === 0 ? 'N/A' : rating[0] as 1 | 2 | 3 | 4 | 5;
+    updateSkillRating(collaborator.id, skillId, newRating);
+  };
+
+  const getRatingSliderValue = (rating: 'N/A' | 1 | 2 | 3 | 4 | 5): number[] => {
+    return rating === 'N/A' ? [0] : [rating];
+  };
 
   return (
     <Card className="w-full">
@@ -82,7 +86,7 @@ const CollaboratorCard: React.FC<CollaboratorCardProps> = ({ collaborator }) => 
               <CardTitle className="flex items-center gap-2">
                 {collaborator.name}
                 {collaborator.isFocal && (
-                  <Flag size={18} className="text-skill-purple" />
+                  <Flag size={18} className="text-skill-purple" title="Ponto Focal" />
                 )}
               </CardTitle>
               <p className="text-sm text-muted-foreground">{getTeamName(collaborator.teamId)}</p>
@@ -107,27 +111,33 @@ const CollaboratorCard: React.FC<CollaboratorCardProps> = ({ collaborator }) => 
             </Button>
           </div>
         </div>
-        {hasAnySkills && (
-          <div className="flex justify-between items-center mt-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowSkills(!showSkills)}
-              className="flex items-center gap-1"
-            >
-              {showSkills ? (
-                <>
-                  <ChevronUp size={16} />
-                  Recolher Habilidades
-                </>
-              ) : (
-                <>
-                  <ChevronDown size={16} />
-                  Expandir Habilidades
-                </>
-              )}
-            </Button>
-            {hardSkills.length > 0 && (
+        
+        <Collapsible
+          open={!isCollapsed}
+          onOpenChange={(open) => setIsCollapsed(!open)}
+          className="mt-4"
+        >
+          <div className="flex justify-between items-center">
+            <CollapsibleTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="flex items-center gap-1"
+              >
+                {isCollapsed ? (
+                  <>
+                    <ChevronDown size={16} />
+                    Expandir Matriz
+                  </>
+                ) : (
+                  <>
+                    <ChevronUp size={16} />
+                    Recolher Matriz
+                  </>
+                )}
+              </Button>
+            </CollapsibleTrigger>
+            {assignedSkills.length > 0 && !isCollapsed && (
               <Button
                 variant="outline"
                 size="sm"
@@ -137,109 +147,125 @@ const CollaboratorCard: React.FC<CollaboratorCardProps> = ({ collaborator }) => 
               </Button>
             )}
           </div>
-        )}
-      </CardHeader>
-      {showSkills && (
-        <CardContent>
-          <div className="flex flex-col md:flex-row gap-6">
-            <div className="flex-1">
-              <div className="space-y-6">
-                {/* Knowledge Skills Matrix */}
-                {knowledgeSkills.length > 0 && (
-                  <div>
-                    <h3 className="text-lg font-medium mb-3">Conhecimentos</h3>
-                    <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                        {knowledgeSkills.map(skill => (
-                          <div key={skill.id} className="p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-all">
-                            <div className="flex flex-col gap-2">
-                              <div className="font-medium text-sm line-clamp-2 min-h-[40px]">{skill.name}</div>
-                              <div className="flex justify-between items-center">
-                                <SkillRatingDot
-                                  rating={skill.rating}
-                                  isApt={skill.isApt}
-                                  onRatingChange={(rating) => updateSkillRating(collaborator.id, skill.id, rating)}
-                                  onAptToggle={() => toggleSkillAptitude(collaborator.id, skill.id)}
-                                  showAptitude={true}
-                                />
+          
+          <CollapsibleContent>
+            <CardContent>
+              <div className="flex flex-col md:flex-row gap-6">
+                <div className="flex-1">
+                  <div className="space-y-6">
+                    {/* Knowledge Skills */}
+                    {knowledgeSkills.length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-medium mb-3">Conhecimentos</h3>
+                        <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                          <div className="grid grid-cols-1 gap-4">
+                            {knowledgeSkills.map(skill => (
+                              <div key={skill.id} className="p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-all">
+                                <div className="flex flex-col gap-2">
+                                  <div className="font-medium">{skill.name}</div>
+                                  <div className="flex items-center gap-4">
+                                    <div className="flex-1">
+                                      <Slider
+                                        value={getRatingSliderValue(skill.rating)}
+                                        min={0}
+                                        max={5}
+                                        step={1}
+                                        onValueChange={(value) => handleRatingChange(skill.id, value)}
+                                        className="w-full"
+                                      />
+                                      <div className="flex justify-between text-xs mt-1 text-muted-foreground">
+                                        <span>N/A</span>
+                                        <span>1</span>
+                                        <span>2</span>
+                                        <span>3</span>
+                                        <span>4</span>
+                                        <span>5</span>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center">
+                                      <SkillRatingDot
+                                        rating={skill.rating}
+                                        isApt={skill.isApt}
+                                        onRatingChange={(rating) => updateSkillRating(collaborator.id, skill.id, rating)}
+                                        onAptToggle={() => toggleSkillAptitude(collaborator.id, skill.id)}
+                                        showAptitude={true}
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
                               </div>
-                            </div>
+                            ))}
                           </div>
-                        ))}
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Hard Skills Matrix */}
-                {hardSkills.length > 0 && (
-                  <div>
-                    <h3 className="text-lg font-medium mb-3">Hard Skills</h3>
-                    <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                        {hardSkills.map(skill => (
-                          <div key={skill.id} className="p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-all">
-                            <div className="flex flex-col gap-2">
-                              <div className="font-medium text-sm line-clamp-2 min-h-[40px]">{skill.name}</div>
-                              <div className="flex justify-between items-center">
-                                <SkillRatingDot
-                                  rating={skill.rating}
-                                  isApt={skill.isApt}
-                                  onRatingChange={(rating) => updateSkillRating(collaborator.id, skill.id, rating)}
-                                  onAptToggle={() => toggleSkillAptitude(collaborator.id, skill.id)}
-                                  showAptitude={false}
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Soft Skills Matrix */}
-                {softSkills.length > 0 && (
-                  <div>
-                    <h3 className="text-lg font-medium mb-3">Soft Skills</h3>
-                    <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                        {softSkills.map(skill => (
-                          <div key={skill.id} className="p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-all">
-                            <div className="flex flex-col gap-2">
-                              <div className="font-medium text-sm line-clamp-2 min-h-[40px]">{skill.name}</div>
-                              <div className="flex justify-between items-center">
-                                <SkillRatingDot
-                                  rating={skill.rating}
-                                  isApt={skill.isApt}
-                                  onRatingChange={(rating) => updateSkillRating(collaborator.id, skill.id, rating)}
-                                  onAptToggle={() => toggleSkillAptitude(collaborator.id, skill.id)}
-                                  showAptitude={false}
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
+                    )}
 
-                {!hasAnySkills && (
-                  <div className="bg-white rounded-lg p-6 text-center text-gray-500 border border-dashed border-gray-200">
-                    Nenhuma habilidade atribuída a este colaborador
+                    {/* Hard & Soft Skills */}
+                    {assignedSkills.filter(s => s.category !== 'knowledge').length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-medium mb-3">Habilidades</h3>
+                        <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                          <div className="grid grid-cols-1 gap-4">
+                            {assignedSkills
+                              .filter(skill => skill.category !== 'knowledge')
+                              .map(skill => (
+                                <div key={skill.id} className="p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-all">
+                                  <div className="flex flex-col gap-2">
+                                    <div className="font-medium">{skill.name}</div>
+                                    <div className="flex items-center gap-4">
+                                      <div className="flex-1">
+                                        <Slider
+                                          value={getRatingSliderValue(skill.rating)}
+                                          min={0}
+                                          max={5}
+                                          step={1}
+                                          onValueChange={(value) => handleRatingChange(skill.id, value)}
+                                          className="w-full"
+                                        />
+                                        <div className="flex justify-between text-xs mt-1 text-muted-foreground">
+                                          <span>N/A</span>
+                                          <span>1</span>
+                                          <span>2</span>
+                                          <span>3</span>
+                                          <span>4</span>
+                                          <span>5</span>
+                                        </div>
+                                      </div>
+                                      <div>
+                                        <SkillRatingDot
+                                          rating={skill.rating}
+                                          isApt={skill.isApt}
+                                          onRatingChange={(rating) => updateSkillRating(collaborator.id, skill.id, rating)}
+                                          onAptToggle={() => toggleSkillAptitude(collaborator.id, skill.id)}
+                                          showAptitude={false}
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {assignedSkills.length === 0 && (
+                      <div className="bg-white rounded-lg p-6 text-center text-gray-500 border border-dashed border-gray-200">
+                        Nenhuma habilidade atribuída a este colaborador
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {showRadar && assignedSkills.length > 0 && (
+                  <div className="flex-1 min-h-[300px]">
+                    <SkillRadarChart collaborator={collaborator} />
                   </div>
                 )}
               </div>
-            </div>
-            {showRadar && hardSkills.length > 0 && (
-              <div className="flex-1 min-h-[300px]">
-                <SkillRadarChart collaborator={collaborator} />
-              </div>
-            )}
-          </div>
-        </CardContent>
-      )}
+            </CardContent>
+          </CollapsibleContent>
+        </Collapsible>
+      </CardHeader>
     </Card>
   );
 };
