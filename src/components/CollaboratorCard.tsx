@@ -86,7 +86,7 @@ const CollaboratorCard: React.FC<CollaboratorCardProps> = ({ collaborator }) => 
               <CardTitle className="flex items-center gap-2">
                 {collaborator.name}
                 {collaborator.isFocal && (
-                  <Flag size={18} className="text-skill-purple" title="Ponto Focal" />
+                  <Flag size={18} className="text-skill-purple" aria-label="Ponto Focal" />
                 )}
               </CardTitle>
               <p className="text-sm text-muted-foreground">{getTeamName(collaborator.teamId)}</p>
